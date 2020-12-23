@@ -1,0 +1,47 @@
+- hosts: master
+  become: false
+  tasks:
+
+   - name: Install helm [1/3]
+     shell: curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+
+   - name: Install helm [2/3]
+     shell: echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+
+   - name: Install helm [3/3]
+     become: true
+     apt:
+       name: helm
+       state: present
+       update_cache: true
+
+   - name: Install Dask[1/3]
+     shell: helm repo add dask https://helm.dask.org/
+
+   - name: Install Dask[2/3]
+     shell: helm repo update
+
+   - name: Install Dask[3/3]
+     shell: helm install dask dask/dask
+
+   - name: Check pods
+     shell: kubectl get pods | grep dask
+     register: pod_info
+     tags: pod_info
+
+   - debug: msg="{{pod_info.stdout}}"
+
+   - name: Set dask configuration [1/2]
+     copy:
+       src: ./values.yaml
+       dest: ~/values.yaml
+
+   - name: Set dask configuration [2/2]
+     shell: helm upgrade --install dask dask/dask --values ~/values.yaml
+
+   - name: Restart all pods
+     shell: kubectl delete pods --all --force
+     register: delete_pod
+     tags: delete_pod
+
+   - debug: msg="{{delete_pod.stdout}}"

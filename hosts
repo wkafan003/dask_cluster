@@ -1,0 +1,14 @@
+[masters]
+master ansible_host=178.154.233.131
+
+[workers]
+84.201.171.135
+84.201.145.46
+84.201.171.118
+84.201.170.12
+84.201.169.65
+84.201.169.77
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_user = andrey
